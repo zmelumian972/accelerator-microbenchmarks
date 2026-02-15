@@ -113,6 +113,7 @@ dtype_mapping = {
     "bfloat16": jax.numpy.bfloat16,
     "float32": jax.numpy.float32,
     "int32": jax.numpy.int32,
+    "int8": jax.numpy.int8,
     "float8": jax.numpy.float8_e4m3fn,
     "float16": jax.numpy.float16,
     "float4": jax.numpy.float4_e2m1fn,
