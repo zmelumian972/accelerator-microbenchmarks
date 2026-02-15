@@ -177,7 +177,12 @@ def unified_ici_collectives_metrics(
       "hlo_replica_groups": json.dumps(hlo_replica_groups),
       "sparsecore_used": sparsecore_used,
   }
-  achieved_bw = [transferred_data*1000/my_time for my_time in ici_average_time_ms_list]
+  EPS = 1e-9
+  achieved_bw = [
+      transferred_data * 1000 / max(t, EPS)
+      for t in ici_average_time_ms_list
+  ]  
+  # achieved_bw = [transferred_data*1000/my_time for my_time in ici_average_time_ms_list]
   achieved_bw_statistics = MetricsStatistics(
         metrics_list=achieved_bw, metrics_name="achieved_bw (GB/s)"
     )
