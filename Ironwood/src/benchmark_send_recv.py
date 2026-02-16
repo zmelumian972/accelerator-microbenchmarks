@@ -86,7 +86,7 @@ def send_recv_benchmark(
     device_count = jax.local_device_count()
     if use_global_devices:
         device_count = jax.device_count()
-    devices = mesh_utils.create_device_mesh((device_count,))
+    devices = mesh_utils.create_device_mesh((device_count,), devices=jax.local_devices())
     mesh = jax.sharding.Mesh(devices, 'x')
     item_size = get_real_dtype_bytes(jnp.dtype(dtype))
     tensor_size_bytes = int(num_elements * item_size)
