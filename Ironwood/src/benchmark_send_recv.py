@@ -79,8 +79,8 @@ def send_recv_benchmark(
     num_elements: int,
     n_repeats: int,
     dtype: jnp.dtype,
-    use_global_devices: bool,
     trace_dir: str,
+    use_global_devices: bool = False,
 ):
     """Runs p2p communication, sending tensor_size_bytes from source to target device."""
     device_count = jax.local_device_count()
@@ -157,8 +157,8 @@ def send_recv_benchmark_calculate_metrics(
     num_elements: int,
     n_repeats: int,
     dtype: jnp.dtype,
-    use_global_devices: bool,
     runtime_ms: float,
+    use_global_devices: bool = False,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Calculates metrics for p2p benchmark."""
     params = locals().items()
