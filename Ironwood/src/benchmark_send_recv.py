@@ -79,11 +79,13 @@ def send_recv_benchmark(
     num_elements: int,
     n_repeats: int,
     dtype: jnp.dtype,
+    use_global_devices: bool,
     trace_dir: str,
 ):
     """Runs p2p communication, sending tensor_size_bytes from source to target device."""
-    #device_count = jax.local_device_count()
-    device_count = jax.device_count()
+    device_count = jax.local_device_count()
+    if use_global_devices:
+        device_count = jax.device_count()
     devices = mesh_utils.create_device_mesh((device_count,))
     mesh = jax.sharding.Mesh(devices, 'x')
     item_size = get_real_dtype_bytes(jnp.dtype(dtype))
