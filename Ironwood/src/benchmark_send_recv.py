@@ -87,8 +87,8 @@ def send_recv_benchmark(
     devices = mesh_utils.create_device_mesh((device_count,))
     mesh = jax.sharding.Mesh(devices, 'x')
     item_size = get_real_dtype_bytes(jnp.dtype(dtype))
-    tensor_size_bytes = num_elements * item_size
-    last_dim = tensor_size_bytes // (1 * 8 * item_size)
+    tensor_size_bytes = int(num_elements * item_size)
+    last_dim = int(tensor_size_bytes // (1 * 8 * item_size))
 
     def p2p_send(source_id, target_id):
         # Get the ID of the current device this code is running on
