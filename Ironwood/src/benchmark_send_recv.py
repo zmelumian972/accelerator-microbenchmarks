@@ -157,6 +157,7 @@ def send_recv_benchmark_calculate_metrics(
     num_elements: int,
     n_repeats: int,
     dtype: jnp.dtype,
+    use_global_devices: bool,
     runtime_ms: float,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Calculates metrics for p2p benchmark."""
