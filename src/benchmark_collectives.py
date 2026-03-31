@@ -14,6 +14,14 @@ from jax.sharding import PartitionSpec as P
 
 # pylint: disable=g-importing-member
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
 
 def create_mesh(
     dcn_size: int, ici_size: int
@@ -29,12 +37,12 @@ def create_mesh(
         )
     if dcn_size > 1:
         mesh_devices = mesh_utils.create_hybrid_device_mesh(
-            ici_parallelism, dcn_parallelism, devices=jax.devices()
+            ici_parallelism, dcn_parallelism, devices=get_jax_devices()
         )
         mesh = Mesh(mesh_devices, ("dcn", "ici"))
     else:
         mesh_devices = mesh_utils.create_device_mesh(
-            [ici_size], devices=jax.devices()
+            [ici_size], devices=get_jax_devices()
         )
         mesh = Mesh(mesh_devices, "ici")
     return mesh

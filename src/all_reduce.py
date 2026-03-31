@@ -17,6 +17,14 @@ METRICS_JSONL_DIR = None
 
 matrix_size_gbyte_to_bandwidth = {}
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
 
 def all_reduce_sum(matrix_dim):
     """Calculates the sum of a matrix using all_reduce."""
@@ -46,7 +54,7 @@ def all_reduce_sum(matrix_dim):
     shard_size_gbyte = (
         matrix.size * dtype.dtype.itemsize / 1e9 / jax.local_device_count()
     )
-    number_of_devices = len(jax.devices())
+    number_of_devices = len(get_jax_devices())
     # Send the data to all other (N-1) devices.
     achieved_bandwidth_gbyte_s = (
         shard_size_gbyte

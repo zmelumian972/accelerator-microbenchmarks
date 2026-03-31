@@ -45,10 +45,18 @@ M_MAX_SIZE = 50000
 # Matmul shapes: A(M,K) x H1(K,K)... x B(K,N) = C(M,N)
 LAYERS = 2
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
 
 def create_mesh() -> Mesh:
     """Creates a mesh."""
-    mesh = Mesh(np.array(jax.devices()), axis_names="i")
+    mesh = Mesh(np.array(get_jax_devices()), axis_names="i")
     return mesh
 
 

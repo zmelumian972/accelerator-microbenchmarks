@@ -16,6 +16,14 @@ METRICS_JSONL_DIR = None
 
 matrix_size_gbyte_to_bandwidth = {}
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
 
 def all_gather(matrix_dim):
     """
@@ -26,7 +34,7 @@ def all_gather(matrix_dim):
         matrix_dim, matrix_dim
     )
 
-    selected_devices = jax.devices()
+    selected_devices = get_jax_devices()
     mesh = jax.sharding.Mesh(selected_devices, "axis")
     sharded_sharding = jax.sharding.NamedSharding(
         mesh, jax.sharding.PartitionSpec("axis")
@@ -53,7 +61,7 @@ def all_gather(matrix_dim):
     average_time_ms = simple_timeit(unshard_array, matrix, task="unshard_array")
 
     matrix_size_gbyte = matrix.size * dtype.dtype.itemsize / 1e9
-    number_of_devices = len(jax.devices())
+    number_of_devices = len(get_jax_devices())
     sharded_matrix_size_gbyte = matrix_size_gbyte / number_of_devices
 
     # Calculate achieved bandwidth

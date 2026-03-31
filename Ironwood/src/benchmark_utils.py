@@ -28,6 +28,17 @@ import gc
 import jax.extend
 from tensorflow.tsl.profiler.protobuf import xplane_pb2
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
+    
+    
+
 
 def get_real_dtype_bytes(dtype) -> float:
     """Returns the real byte size of a dtype, handling sub-byte types."""
@@ -97,7 +108,7 @@ def multiple_iteration_timeit_from_trace_throttling(
                         f"[{task}] Running iteration {i} of {tries} with "
                         f"{matrix_dim}..."
                     )
-                jax.devices()
+                get_jax_devices()
                 with jax.profiler.StepTraceAnnotation(task, step_num=i):
                     with jax.named_scope(f"{MARKER}_{i}"):
                         result = compute_func(*data_args)
@@ -112,7 +123,7 @@ def multiple_iteration_timeit_from_trace_throttling(
                         f"[{task}] Running iteration {i} of {tries} with "
                         f"{matrix_dim}..."
                     )
-                jax.devices()
+                get_jax_devices()
                 with jax.profiler.StepTraceAnnotation(task, step_num=i):
                     with jax.named_scope(f"{MARKER}_{i}"):
                         compute_func(*data_args)
@@ -129,7 +140,7 @@ def multiple_iteration_timeit_from_trace_throttling(
                         f"{matrix_dim}..."
                     )
                 data_args = data_generator()
-                jax.devices()
+                get_jax_devices()
                 with jax.profiler.StepTraceAnnotation(task, step_num=i):
                     with jax.named_scope(f"{MARKER}_{i}"):
                         result = compute_func(*data_args)
@@ -186,7 +197,7 @@ def multiple_iteration_timeit_from_trace(
                     f"{matrix_dim}..."
                 )
             data_args = data_generator()
-            jax.devices()
+            get_jax_devices()
 
             with jax.profiler.StepTraceAnnotation(task, step_num=i):
                 with jax.named_scope(f"{MARKER}_{i}"):
@@ -292,7 +303,7 @@ def iteration_timeit_from_trace(
     with jax.profiler.trace(tmp_trace_dir):
         for _ in range(tries):
             data_args = data_generator()
-            jax.devices()  # Force synchronization across devices
+            get_jax_devices()  # Force synchronization across devices
             with jax.profiler.TraceAnnotation(task):
                 result = compute_func(*data_args)
                 jax.block_until_ready(result)
@@ -498,7 +509,7 @@ def iteration_timeit(
     for i in range(tries):  # pylint: disable=unused-variable
         # 1. Generate NEW random data (meets "no cache hit" rule)
         data_args = data_generator()
-        jax.devices()  # Force synchronization across devices
+        get_jax_devices()  # Force synchronization across devices
 
         # Start timer just before the compute call
         s_time = datetime.datetime.now()
@@ -533,7 +544,7 @@ def simple_timeit(
     outcomes_ms = []
     jax.block_until_ready(f(*args))  # warm it up!
     for _ in range(tries):
-        jax.devices()  # Force synchronization across devices
+        get_jax_devices()  # Force synchronization across devices
         s = datetime.datetime.now()
         jax.block_until_ready(f(*args))
         e = datetime.datetime.now()
@@ -741,7 +752,7 @@ def timeit_from_trace(
     print(trace_dir)
     with jax.profiler.trace(tmp_trace_dir):
         for _ in range(tries):
-            jax.devices()  # Force synchronization across devices
+            get_jax_devices() # Force synchronization across devices
             with jax.profiler.TraceAnnotation(task):
                 jax.block_until_ready(f(*args))
 
@@ -1187,10 +1198,10 @@ def create_mesh(strategy: ShardingStrategy) -> Mesh:
         mesh_shape = (num_chips, 2)
         mesh_axes = ("chip", "device")
         mesh = jax.sharding.Mesh(
-            np.array(jax.devices()).reshape(mesh_shape), mesh_axes
+            np.array(get_jax_devices()).reshape(mesh_shape), mesh_axes
         )
     else:
-        mesh = Mesh(np.array(jax.devices()), axis_names="device")
+        mesh = Mesh(np.array(get_jax_devices()), axis_names="device")
     return mesh
 
 

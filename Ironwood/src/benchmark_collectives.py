@@ -30,11 +30,19 @@ GLOBAL_SHARDING_STRATEGY = ShardingStrategy.NO_SHARDING
 GLOBAL_PSTATE = 7
 LOG_SPARSECORE_USAGE = False
 
+def get_jax_devices():
+    import os
+    devices = jax.devices()
+    jax_visible_devices = os.environ.get("JAX_VISIBLE_DEVICES", None)
+    if jax_visible_devices:
+        idx = list(map(int, jax_visible_devices.split(",")))
+        devices = [device for device in devices if device.id in idx]
+    return devices
 
 def create_mesh(ici_size: int, mesh_shape: str) -> Mesh:
     """Creates a mesh with the given ICI size."""
     devices_needed = ici_size
-    devices = jax.devices()
+    devices = get_jax_devices()
 
     if len(devices) < devices_needed:
         raise ValueError(
@@ -51,7 +59,7 @@ def create_mesh(ici_size: int, mesh_shape: str) -> Mesh:
     first_device = devices[0]
     device_kind = first_device.device_kind
     print("Device kind: ", device_kind)
-    mesh_devices = mesh_utils.create_device_mesh(shape, devices=jax.devices())
+    mesh_devices = mesh_utils.create_device_mesh(shape, devices=get_jax_devices())
     mesh = Mesh(mesh_devices, axis_names)
     return mesh
 
